@@ -1,20 +1,54 @@
+---
+title: "Peer Assessment 1"
+author: "Marata T.I"
+date: "Monday, August 18, 2014"
+output: html_document
+---
+
 # Reproducible Research: Peer Assessment 1
 
 
 ## Loading and preprocessing the data
 
+```{r, echo=TRUE}
+activity <- read.csv("C:/Users/Tseliso/datasciencecoursera/RepData_PeerAssessment1/activity.csv")
+physactivity <- activity
+```
 
+The mean of the total number of steps taken per day can be calculated through the mean function ignoring the missing values
 
-## What is mean total number of steps taken per day?
+```{r, echo=TRUE}
+x <- !is.na(physactivity$steps)
+y <- which(x)
+hist(y, main = "NUMBER OF STEPS EACH DAY", xlab ="Total Number Of Steps per day")
+mean(physactivity$steps, na.rm = T)
+median(physactivity$steps, na.rm = T)
+```
 
-
+Thus from the calculation the mean is found to be  0.8688525 37.3826 and the median number of steps each day is 0. NB NAs have been left out.
 
 ## What is the average daily activity pattern?
-
-
+```{r, echo = TRUE}
+plot(x = physactivity$interval, y = physactivity$steps, type = "l",main = "Average Number of Steps per time interval",
+     xlab = "Interval", ylab = "Steps")
+myactivity <- na.omit(physactivity)
+maxsteps <- max(myactivity$steps)
+maxinterval <- subset(myactivity, steps == maxsteps,
+                  select=interval) 
+```
+The maximum number of steps, 806, were attained during the time interval of 615 minutes.
 
 ## Imputing missing values
-
-
-
-## Are there differences in activity patterns between weekdays and weekends?
+We will start by calculating the number of rows with missing values
+```{r, echo = TRUE}
+sum(is.na(physactivity)) # Finding the number of rows with NAs
+y <-mean(physactivity$steps, na.rm = T) # Calculating the mean of physactivity data frame excluding NAs
+newdata <-physactivity
+newdata[is.na(newdata)] <- 37.38 # Replacing NAs with a mean and assigning the results to a new data frame
+hist(newdata$steps, main = "Histogram Of Number Of Steps taken Every Day", xlab = "Total Number Of Steps Taken")
+mean(newdata$steps)  # Calculating the mean of the new datastet
+median(newdata$steps) # Calculating the median of the new datastet
+```
+There are 2304 NAs in the data.
+The median of the new dataset is 0 and the mean is 37.3826 Both are the same as those calculated before.
+The effect of replacing the NAs with the mean/median is that subsequent calculations are performed without being affected by NAs.
