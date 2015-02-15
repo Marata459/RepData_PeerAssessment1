@@ -1,54 +1,81 @@
 ---
-title: "Peer Assessment 1"
-author: "Marata T.I"
-date: "Monday, August 18, 2014"
+title: "PA1_template.Rmd"
 output: html_document
 ---
+## Introduction
+Below is the peer assessment assignment 1 of the course "Reproducible Research".
 
-# Reproducible Research: Peer Assessment 1
+## Reading the data
 
-
-## Loading and preprocessing the data
-
-```{r, echo=TRUE}
-activity <- read.csv("C:/Users/Tseliso/datasciencecoursera/RepData_PeerAssessment1/activity.csv")
-physactivity <- activity
-```
-
-The mean of the total number of steps taken per day can be calculated through the mean function ignoring the missing values
-
-```{r, echo=TRUE}
-x <- !is.na(physactivity$steps)
-y <- which(x)
-hist(y, main = "NUMBER OF STEPS EACH DAY", xlab ="Total Number Of Steps per day")
-mean(physactivity$steps, na.rm = T)
-median(physactivity$steps, na.rm = T)
-```
-
-Thus from the calculation the mean is found to be  0.8688525 37.3826 and the median number of steps each day is 0. NB NAs have been left out.
-
-## What is the average daily activity pattern?
 ```{r, echo = TRUE}
-plot(x = physactivity$interval, y = physactivity$steps, type = "l",main = "Average Number of Steps per time interval",
-     xlab = "Interval", ylab = "Steps")
-myactivity <- na.omit(physactivity)
-maxsteps <- max(myactivity$steps)
-maxinterval <- subset(myactivity, steps == maxsteps,
-                  select=interval) 
-```
-The maximum number of steps, 806, were attained during the time interval of 615 minutes.
+library(plyr)
 
-## Imputing missing values
-We will start by calculating the number of rows with missing values
-```{r, echo = TRUE}
-sum(is.na(physactivity)) # Finding the number of rows with NAs
-y <-mean(physactivity$steps, na.rm = T) # Calculating the mean of physactivity data frame excluding NAs
-newdata <-physactivity
-newdata[is.na(newdata)] <- 37.38 # Replacing NAs with a mean and assigning the results to a new data frame
-hist(newdata$steps, main = "Histogram Of Number Of Steps taken Every Day", xlab = "Total Number Of Steps Taken")
-mean(newdata$steps)  # Calculating the mean of the new datastet
-median(newdata$steps) # Calculating the median of the new datastet
+# Reads the data into the workspace
+# colClass specify the respective data types of each column 
+data <- read.csv("activity.csv", colClasses = c("numeric", "Date", "numeric"))
+
 ```
-There are 2304 NAs in the data.
-The median of the new dataset is 0 and the mean is 37.3826 Both are the same as those calculated before.
-The effect of replacing the NAs with the mean/median is that subsequent calculations are performed without being affected by NAs.
+
+# The mean total of steps per day
+The histogram below shows the number of steps travelled each day.
+
+```{r, echo= TRUE}
+# 1. Histogram of number of steps per day
+
+datasum <- aggregate(x=list(steps=data$steps), by=list(Day=data$date), FUN=sum, na.rm=TRUE)
+
+tot_steps <- sum(datasum$steps)/nrow(datasum) # = Number of steps per day
+
+hist(datasum$steps, main = "Number Of Steps per Day", xlab = "Number Of Steps", ylab = "frequency")
+
+# 2. Mean and median Number of steps per day
+
+meansteps <- round(mean(datasum$steps, na.rm = T), digits = 2) # The round() converts the output to 2 decimal places
+
+mediansteps <- round(median(datasum$steps, na.rm = T), digits = 2)
+
+```
+
+
+The mean number of steps travelled per day is `r meansteps` and the median number of steps is `r mediansteps`.
+
+# Average Daily Pattern
+
+Below is a series plot showing the average daily pattern.
+
+```{r, echo = TRUE}
+library(ggplot2)
+data2 <- aggregate(x=list(steps=data$steps), by=list(interval=data$interval), FUN=mean, na.rm=TRUE)
+
+p <- ggplot(data2, aes(x = interval)) +
+geom_line(aes(y = steps), colour="blue") +
+    ylab(label="Number Of Steps") +xlab("Intervals")
+px <- p+ ggtitle("Average Number Of Steps Per Day")
+px
+
+maxsteps <- subset(data2, steps >= max(data2$steps, na.rm = T),select=c(steps,interval))
+maxsteps # maximum number of steps
+```
+
+The maximum number of steps on average, corresponds to interval `r maxsteps$interval`.
+
+# Imputing Missing values
+
+```{r, echo = TRUE}
+missingV <- sum(is.na(data))
+mydata <- data
+mydata[is.na(data)] <-  37 
+# Histogram of number of steps per day
+
+hist(mydata$steps, main = "Number Of Steps per Day", xlab = "Number Of Days", ylab = "Number Of Steps")
+
+# Mean and median Number of steps per day
+
+meansteps1 <- round(mean(mydata$steps), digits = 2) # The round() converts the output to 2 decimal places
+
+mediansteps1 <- round(median(mydata$steps, na.rm = T), digits = 2)
+```
+
+- There are `r missingV` missing values in the data.
+- The mean number of steps is `r meansteps1` and the median number of steps is `r mediansteps1`.
+- There are no differences between the mean and median calculated in this step and those calculated earlier.
